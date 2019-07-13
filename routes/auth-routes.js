@@ -8,6 +8,37 @@ const bcrypt = require("bcrypt")
 const bcryptSalt = 10;
 const ensureLogin = require("connect-ensure-login")
 
+const GitHubStrategy = require('passport-github').Strategy;
+
+passport.use(new GitHubStrategy({
+  clientID: "0825ffbdda37d99ec6ea",
+  clientSecret: "1ab1705344f7cb6ac80e25e83208afb38f817036",
+  callbackURL: "http://localhost:3000/auth/github/callback"
+},
+function(accessToken, refreshToken, profile, cb) {
+  // User.findOrCreate({ githubId: profile.id }, function (err, user) {
+  //   return cb(err, user);
+  // });
+  console.log("Autenticado")
+  console.log(profile)
+  let { id, username } = profile;
+  console.log( id,'--', username)
+  User.findOne({ githubId: id })
+  .then( resp => {
+    if( resp == null ){
+      User.create({ githubId: id })
+      .then( resp => {
+        console.log('User creado')
+      })
+    }else{
+      console.log('El usuario ya existe')
+      
+    }
+  })
+  .catch( err => console.log(err))
+}
+));
+
 authRoutes.get("/signup", (req, res, next) => {
   res.render("auth/signup")
 })
